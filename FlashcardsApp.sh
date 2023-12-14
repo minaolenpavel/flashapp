@@ -31,12 +31,18 @@ for c in $(ls ./data/levels/1/*.md | shuf)
 do 
     level=$(echo "$c" | cut -d '/' -f 4)
     echo "$level"
-    #mdp "$c"
-    #echo "Avez vous trouvé la réponse ? (y/n)"
-    #read answer
-    #if [[ $answer -eq "y" ]] 
-    
-
+    mdp "$c"
+    echo "Avez vous trouvé la réponse ? (y/n)"
+    read answer
+    if [[ "$answer" == "y" ]] 
+    then 
+        if [[ $level != 4 ]]
+        then 
+            level=$(expr $level + 1)
+            mv "$c" "./data/levels/$level/"
+            echo "carte $c dans la boite $level"
+        fi
+    fi
 
 done
 
