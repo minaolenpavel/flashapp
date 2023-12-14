@@ -7,7 +7,7 @@ FILE="Russe.csv"
 #mdp pouvr ouvrir en md, sinon le md est un format de texte presque brut 
 
 count=0
-while IFS=";" read -r col1 col2
+while IFS=";" read -r col1 col2 
 do
     #solution qui PEUT etre trop récente, vaut mieux utiliser 
     #count=$(expr $count + 1)
