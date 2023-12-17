@@ -6,6 +6,10 @@ FILE="Russe.csv"
 #mkdir xdg-user-dir DOCUMENTS/dirname to create a directory in the user's documents folder
 #mdp pouvr ouvrir en md, sinon le md est un format de texte presque brut 
 
+echo "Bienvenue dans FlashApp™"
+
+create_cards()
+{
 count=0
 while IFS=";" read -r col1 col2 
 do
@@ -18,7 +22,11 @@ do
 ---
 -> # $col2" > ./data/cards/pair$count.md
 done < "$FILE"
+}
 
+
+session()
+{
 echo "Préparation de la session" 
 cards=$(ls ./data/cards/*.md | shuf -n 10) 
 for c in $cards
@@ -42,9 +50,17 @@ do
             mv "$c" "./data/levels/$level/"
             echo "carte $c dans la boite $level"
         fi
+    else 
+        if [[ $level != 1 ]]
+        then 
+            level=$(expr $level - 1)
+            mv "$c" "./data/levels/$level/"
+            echo "carte $c dans la boite $level"
+        fi
     fi
-
 done
+}
+
 
 #ls session/*/*.md | shuf
 #fait un échantillon de fichiers aléatoire parmi les boites
