@@ -71,10 +71,9 @@ main()
         then 
             answered="true"
             session
-        if [[ "$answered" == "2" ]]
+        elif [[ "$answer" == "2" ]]
         then 
             create_cards
-        fi
         else
             echo "Je n'ai pas compris votre demande, veuillez insérer une commande correcte."
         fi 
