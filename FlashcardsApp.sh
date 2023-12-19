@@ -4,7 +4,8 @@ FILE="Russe.csv"
 #expr interprete les chaines de caractères comme des int
 #cut -f 2,3 prend en compte les colonnes 2 et 3 | cut -d; indique le délimiteur
 #mkdir xdg-user-dir DOCUMENTS/dirname to create a directory in the user's documents folder
-#mdp pouvr ouvrir en md, sinon le md est un format de texte presque brut 
+#pour faire l'installer, il pourrait être judicieux de detecter si les fichiers sont bien présents au démarrage du programme
+#si il ne sont pas présent, le programme commence avec main, autrement il suggère l'installation du programme. 
 
 create_cards()
 {
@@ -15,10 +16,10 @@ create_cards()
         #count=$(expr $count + 1)
         ((count++))
         echo "
-    -> # $col1
+-> # $col1
 
-    ---
-    -> # $col2" > ./data/cards/pair$count.md
+---
+-> # $col2" > ./data/cards/pair$count.md
     done < "$FILE"
 }
 
@@ -56,6 +57,7 @@ session()
             fi
         fi
     done
+    echo "Cartes crées ! Vous pouvez commencer la session."
 }
 
 main()
@@ -64,6 +66,7 @@ main()
     answered="false"
     while [ "$answered" == "false" ]
     do
+        echo "Veuillez faire un choix :"
         echo "1 - Session du jour"
         echo "2 - Créer un set de carte"
         read answer
@@ -88,3 +91,4 @@ main
 
 #echo "$f" | cut -d '/' -f 3 
 #commande qui va analyser le path du fichier pour avoir 
+
