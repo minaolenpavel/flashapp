@@ -12,20 +12,21 @@ FILE="Russe.csv"
 create_cards()
 {
     count=0
-    while IFS=";" read -r col1 col2 
+    first_line=$(head -n 1 $FILE)
+    IFS='; ' read -r -a keys <<< "$first_line"
+    while IFS=";" read -r col1 col2 col3 col4 col5
     do
-        #solution qui PEUT etre trop récente, vaut mieux utiliser 
-        #count=$(expr $count + 1)
         ((count++))
-        echo "
-
-
-# $col1
-
----
-
-
-# $col2" > ./data/levels/1/pair$count.md
+        {
+            echo "# ${keys[0]} : $col1"
+            echo
+            echo "---"
+            [[ -n $col2 ]] && echo "# ${keys[1]} : $col2"
+            echo
+            [[ -n $col3 ]] && echo "# ${keys[2]} : $col3"
+            [[ -n $col4 ]] && echo "# ${keys[3]} : $col4"
+            [[ -n $col5 ]] && echo "# ${keys[4]} : $col5"
+        } > "./data/levels/1/pair$count.md"
     done < "$FILE"
     echo "Cartes crées ! Vous pouvez commencer la session."
 
@@ -121,6 +122,32 @@ session()
 
 main()
 {
+    nb_cards=$(ls ./data/session/*/*.md 2>/dev/null | wc -l)
+    if [[ $nb_cards -ge 1 ]]
+    then 
+        echo "Vous n'avez pas fini votre session la dernière fois !"
+        echo "Vous voulez que le programme ait des problèmes ? Non ce n'est pas bien, je vais nettoyer tout ça mais ne le faites plus"
+        echo "En plus ce n'est pas bon pour votre apprentissage"
+        echo "Je vais m'assurer que vous ne le fassiez plus"
+        phrase="Oh, comme je suis navré(e) cher programme, je ne recommencerai plus jamais ! je te le promets !"
+        echo "Recopiez la phrase suivante, et je vous pardonne :"
+        echo "$phrase"
+        correct="false"
+        while [[ $correct == "false" ]]
+        do
+            read reponse
+            if [[ $reponse == $phrase ]]
+            then
+                echo "Je sais que vous avez fait un copier-coller, mais je vous pardonne quand même, ne faites plus jamais ça !"
+                correct="true"
+                echo
+            else
+                echo "J'ai pas compris"
+            fi
+        done
+        cleaning
+    fi
+    
     echo "Bienvenue dans FlashApp™"
     answered="false"
     while [ "$answered" == "false" ]
@@ -142,7 +169,7 @@ main()
     done
 }
 
-test
+main
 
 
 #ls session/*/*.md | shuf
