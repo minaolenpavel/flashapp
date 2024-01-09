@@ -33,6 +33,22 @@ create_cards()
 
 test()
 {
+    echo
+}
+
+cleaning()
+{
+    for c in $(ls ./data/session/*/*.md)
+    do 
+        level=$(echo "$c" | cut -d '/' -f 4)
+        mv $c ./data/levels/$level/
+    done
+}
+
+session()
+{
+    echo "Préparation de la session" 
+
     mv_amount=4
     for i in $(seq 1 4)
     do
@@ -52,51 +68,14 @@ test()
         fi
         ((mv_amount--))
     done
-    
-    
-    
-}
-
-cleaning()
-{
-    for c in $(ls ./data/session/*/*.md)
-    do 
-        level=$(echo "$c" | cut -d '/' -f 4)
-        mv $c ./data/levels/$level/
-    done
-}
-
-session()
-{
-    echo "Préparation de la session" 
-
-    if [[ $(ls ./data/levels/1/ | wc -l)  -ge 4 && $(ls ./data/levels/2/ | wc -l)  == 3 && $(ls ./data/levels/3/ | wc -l)  == 2 && $(ls ./data/levels/4/ | wc -l)  == 1  ]]
-    then
-        for c in $(ls ./data/levels/1/*.md | shuf -n 4)
+    nb_cards=$(ls ./data/session/*/*.md | wc -l)
+    if [[ $nb_cards -lt 10 ]]
+    then 
+        gap=$(expr 10 - "$nb_cards")
+        for c in $(ls ./data/levels/*/*.md | shuf -n "$gap")
         do 
-            mv $c ./data/session/1/
-        done
-
-        for c in $(ls ./data/levels/2/*.md | shuf -n 3)
-        do 
-            mv $c ./data/session/2/
-        done
-
-        for c in $(ls ./data/levels/3/*.md | shuf -n 2)
-        do 
-            mv $c ./data/session/3/
-        done
-
-        for c in $(ls ./data/levels/4/*.md | shuf -n 1)
-        do 
-            mv $c ./data/session/4/
-        done 
-    else 
-        cards=$(ls ./data/levels/*/*.md | shuf -n 10)
-        for c in $cards
-        do 
-            mv_amount=$(echo "$c" | cut -d '/' -f 4)
-            mv $c ./data/session/$mv_amount/
+            level=$(echo "$c" | cut -d '/' -f 4)
+            mv "$c" ./data/session/"$level"/
         done
     fi
     
