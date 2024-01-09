@@ -6,6 +6,8 @@ FILE="Russe.csv"
 #mkdir xdg-user-dir DOCUMENTS/dirname to create a directory in the user's documents folder
 #pour faire l'installer, il pourrait être judicieux de detecter si les fichiers sont bien présents au démarrage du programme
 #si il ne sont pas présent, le programme commence avec main, autrement il suggère l'installation du programme. 
+#ajouter un onglet statistiques
+#ne pas oublier de faire un vide dans la création de la session après la session, créer une boite session ?
 
 create_cards()
 {
@@ -16,48 +18,126 @@ create_cards()
         #count=$(expr $count + 1)
         ((count++))
         echo "
--> # $col1
+
+
+# $col1
 
 ---
--> # $col2" > ./data/cards/pair$count.md
+
+
+# $col2" > ./data/levels/1/pair$count.md
     done < "$FILE"
+    echo "Cartes crées ! Vous pouvez commencer la session."
+
+}
+
+test()
+{
+    mv_amount=4
+    for i in $(seq 1 4)
+    do
+        echo $mv_amount
+        if [[ $(ls ./data/levels/$i | wc -l) -ge $mv_amount ]]
+        then 
+            for c in $(ls ./data/levels/$i/*.md | shuf -n $mv_amount)
+            do 
+                mv $c ./data/session/$i/
+            done
+        elif [[ $(ls ./data/levels/$i | wc -l) -ge 1 && $(ls ./data/levels/$i | wc -l) -lt $mv_amount ]]
+        then 
+            for c in $(ls ./data/levels/$i/*.md)
+            do 
+                mv $c ./data/session/$i/
+            done
+        fi
+        ((mv_amount--))
+    done
+    
+    
+    
+}
+
+cleaning()
+{
+    for c in $(ls ./data/session/*/*.md)
+    do 
+        level=$(echo "$c" | cut -d '/' -f 4)
+        mv $c ./data/levels/$level/
+    done
 }
 
 session()
 {
     echo "Préparation de la session" 
-    cards=$(ls ./data/cards/*.md | shuf -n 10) 
-    for c in $cards 
-    do 
-        mv "$c" ./data/levels/1/
-    done
 
+    if [[ $(ls ./data/levels/1/ | wc -l)  -ge 4 && $(ls ./data/levels/2/ | wc -l)  == 3 && $(ls ./data/levels/3/ | wc -l)  == 2 && $(ls ./data/levels/4/ | wc -l)  == 1  ]]
+    then
+        for c in $(ls ./data/levels/1/*.md | shuf -n 4)
+        do 
+            mv $c ./data/session/1/
+        done
+
+        for c in $(ls ./data/levels/2/*.md | shuf -n 3)
+        do 
+            mv $c ./data/session/2/
+        done
+
+        for c in $(ls ./data/levels/3/*.md | shuf -n 2)
+        do 
+            mv $c ./data/session/3/
+        done
+
+        for c in $(ls ./data/levels/4/*.md | shuf -n 1)
+        do 
+            mv $c ./data/session/4/
+        done 
+    else 
+        cards=$(ls ./data/levels/*/*.md | shuf -n 10)
+        for c in $cards
+        do 
+            mv_amount=$(echo "$c" | cut -d '/' -f 4)
+            mv $c ./data/session/$mv_amount/
+        done
+    fi
+    
+    #####
     echo "Début de la session"
-    for c in $(ls ./data/levels/1/*.md | shuf)
+    for c in $(ls ./data/session/*/*.md | shuf)
     do 
         level=$(echo "$c" | cut -d '/' -f 4)
         echo "$level"
         mdp "$c"
         echo "Avez vous trouvé la réponse ? (y/n)"
-        read answer
-        if [[ "$answer" == "y" ]] 
-        then 
-            if [[ $level != 4 ]]
+        answered="false"
+        while [ "$answered" != "true" ]
+        do
+            read answer
+            if [[ "$answer" == "y" ]] 
             then 
-                level=$(expr $level + 1)
-                mv "$c" "./data/levels/$level/"
-                echo "carte $c dans la boite $level"
-            fi
-        else 
-            if [[ $level != 1 ]]
+                if [[ $level != 4 ]]
+                then 
+                    level=$(expr $level + 1)
+                    mv "$c" "./data/levels/$level/"
+                    echo "carte $c dans la boite $level"
+                fi
+                answered="true"
+
+            elif [[ "$answer" == "n" ]]
             then 
-                level=$(expr $level - 1)
-                mv "$c" "./data/levels/$level/"
-                echo "carte $c dans la boite $level"
+                if [[ $level != 1 ]]
+                then 
+                    level=$(expr $level - 1)
+                    mv "$c" "./data/levels/$level/"
+                    echo "carte $c dans la boite $level"
+                else 
+                    mv "$c" "./data/levels/$level"
+                fi
+                answered="true"
+            else 
+                echo "Je n'ai pas compris utilisez uniquement les commandes y et n, essayez à nouveau"
             fi
-        fi
+        done
     done
-    echo "Cartes crées ! Vous pouvez commencer la session."
 }
 
 main()
@@ -83,7 +163,7 @@ main()
     done
 }
 
-main
+test
 
 
 #ls session/*/*.md | shuf
