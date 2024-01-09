@@ -34,7 +34,9 @@ create_cards()
 
 test()
 {
-    echo
+    mkdir -p ~/FlashApp/data/{levels,session}/
+    mkdir -p ~/FlashApp/data/levels/{1,2,3,4}/
+    mkdir -p ~/FlashApp/data/session/{1,2,3,4}/
 }
 
 cleaning()
@@ -169,7 +171,13 @@ main()
     done
 }
 
-main
+if [[ -e ~/FlashApp ]]
+then 
+    echo "exists"
+else 
+    echo "nope"
+fi
+
 
 
 #ls session/*/*.md | shuf
