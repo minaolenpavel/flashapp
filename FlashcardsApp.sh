@@ -117,45 +117,42 @@ session()
         echo $set
     done
     read chosen_set
-
     echo "Préparation de la session" 
-
     mv_amount=4
     for i in $(seq 1 4)
     do
         echo $mv_amount
-        if [[ $(ls ./data/levels/$i | wc -l) -ge $mv_amount ]]
+        if [[ $(ls "$HOME"/FlashApp/data/"$chosen_set"/levels/"$i"/ | wc -l) -ge $mv_amount ]]
         then 
-            for c in $(ls ./data/levels/$i/*.md | shuf -n $mv_amount)
+            for c in $(ls "$HOME"/FlashApp/data/"$chosen_set"/levels/$i/*.md | shuf -n $mv_amount)
             do 
-                mv $c ./data/session/$i/
+                mv $c "$HOME"/FlashApp/data/"$chosen_set"/session/$i/
             done
-        elif [[ $(ls ./data/levels/$i | wc -l) -ge 1 && $(ls ./data/levels/$i | wc -l) -lt $mv_amount ]]
+        elif [[ $(ls "$HOME"/FlashApp/data/"$chosen_set"/levels/$i | wc -l) -ge 1 && $(ls "$HOME"/FlashApp/data/"$chosen_set"/levels/$i | wc -l) -lt $mv_amount ]]
         then 
-            for c in $(ls ./data/levels/$i/*.md)
+            for c in $(ls "$HOME"/FlashApp/data/"$chosen_set"/levels/$i/*.md)
             do 
-                mv $c ./data/session/$i/
+                mv $c "$HOME"/FlashApp/data/"$chosen_set"/session/$i/
             done
         fi
         ((mv_amount--))
     done
-    nb_cards=$(ls ./data/session/*/*.md | wc -l)
+    nb_cards=$(ls "$HOME"/FlashApp/data/"$chosen_set"/session/*/*.md | wc -l)
     if [[ $nb_cards -lt 10 ]]
     then 
         gap=$(expr 10 - "$nb_cards")
-        for c in $(ls ./data/levels/*/*.md | shuf -n "$gap")
+        for c in $(ls "$HOME"/FlashApp/data/"$chosen_set"/levels/*/*.md | shuf -n "$gap")
         do 
-            level=$(echo "$c" | cut -d '/' -f 4)
-            mv "$c" ./data/session/"$level"/
+            level=$(echo "$c" | cut -d '/' -f 8)
+            mv "$c" "$HOME"/FlashApp/data/"$chosen_set"/session/"$level"/
         done
     fi
     
     #####
     echo "Début de la session"
-    for c in $(ls ./data/session/*/*.md | shuf)
+    for c in $(ls "$HOME"/FlashApp/data/"$chosen_set"/session/*/*.md | shuf)
     do 
-        level=$(echo "$c" | cut -d '/' -f 4)
-        echo "$level"
+        level=$(echo "$c" | cut -d '/' -f 8)
         mdp "$c"
         echo "Avez vous trouvé la réponse ? (y/n)"
         answered="false"
@@ -166,8 +163,8 @@ session()
             then 
                 if [[ $level != 4 ]]
                 then 
-                    level=$(expr $level + 1)
-                    mv "$c" "./data/levels/$level/"
+                    level=$(expr "$level" + 1)
+                    mv "$c" "$HOME"/FlashApp/data/"$chosen_set"/levels/"$level"/
                     echo "carte $c dans la boite $level"
                 fi
                 answered="true"
@@ -177,10 +174,10 @@ session()
                 if [[ $level != 1 ]]
                 then 
                     level=$(expr $level - 1)
-                    mv "$c" "./data/levels/$level/"
+                    mv "$c" "$HOME"/FlashApp/data/"$chosen_set"/data/levels/"$level"/
                     echo "carte $c dans la boite $level"
                 else 
-                    mv "$c" "./data/levels/$level"
+                    mv "$c" "$HOME"/FlashApp/data/"$chosen_set"/levels/"$level"
                 fi
                 answered="true"
             else 
@@ -192,7 +189,7 @@ session()
 
 main()
 {
-    nb_cards=$(ls ./data/session/*/*.md 2>/dev/null | wc -l)
+    nb_cards=$(ls "$HOME"/FlashApp/data/"$chosen_set"/session/*/*.md 2>/dev/null | wc -l)
     if [[ $nb_cards -ge 1 ]]
     then 
         echo "Vous n'avez pas fini votre session la dernière fois !"
