@@ -80,7 +80,7 @@ create_cards()
     echo -ne '#####                     (33%)\r'
     sleep 1
     cp "$HOME""/$file" "$HOME"/FlashApp/data/sets/"$name"
-    FILE="$HOME/FlashApp/data/sets/$name/$file"
+    FILE="$HOME/FlashApp/data/sets/$name/$file" 
     count=0
     first_line=$(head -n 1 "$FILE")
     echo -ne '#############             (66%)\r'
@@ -99,7 +99,7 @@ create_cards()
             [[ -n $col4 ]] && echo "# ${keys[3]} : $col4"
             [[ -n $col5 ]] && echo "# ${keys[4]} : $col5"
         } > "$HOME/FlashApp/data/sets/$name/levels/1/pair$count.md"
-    done < "$FILE"
+    done < <(tail -n +2 "$FILE")
     echo -ne '#######################   (100%)\r'
     echo -ne '\n'
     echo "Cartes crées ! Vous pouvez commencer la session."
@@ -113,7 +113,6 @@ test()
 
 cleaning()
 {
-    ls $HOME/FlashApp/data/*/session/*/*.md
     for c in $(ls $HOME/FlashApp/data/sets/*/session/*/*.md)
     do 
         set_name=$(echo "$c" | cut -d '/' -f 7)
