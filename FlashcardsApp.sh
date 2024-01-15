@@ -1,5 +1,4 @@
 #!/bin/bash
-FILE="Russe.csv"
 
 #expr interprete les chaines de caractères comme des int
 #cut -f 2,3 prend en compte les colonnes 2 et 3 | cut -d; indique le délimiteur
@@ -9,10 +8,64 @@ FILE="Russe.csv"
 #ajouter un onglet statistiques
 #ne pas oublier de faire un vide dans la création de la session après la session, créer une boite session ?
 
+installer()
+{
+    echo "Bienvenue dans FlashApp™"
+    echo "FlashApp n'est pas installé sur votre ordinateur"
+    echo "Voulez vous l'installer ? (y/n)"
+    read answer
+    if [[ $answer == "y" ]]
+    then
+        mkdir -p ~/FlashApp/data/
+        echo "FlashApp est désormais installé sur votre ordinateur"
+        echo "Vous pouvez lancer le même programme pour l'utiliser"
+    elif [[ $answer == "n" ]]
+    then
+        echo "Au revoir !"
+    else
+        echo "Je n'ai pas compris, veuillez utiliser y/n pour répondre"
+    fi
+}
+
+check_install()
+{
+    folders=(levels session)
+    for folder in "${folders[@]}"
+    do 
+        END=5
+        for (( i=1; i<$END; i++));
+        do
+            path="$HOME/FlashApp/data/$folder/$i"
+            echo "$path"
+            if [[ -d "$path" ]]
+            then
+                echo "alright"
+            else 
+                echo "wrong"
+            
+            fi
+        done
+    done
+}
+
 create_cards()
 {
+    echo "Quel nom voulez-vous donner à votre set de cartes ?"
+    read name
+    mkdir -p "$HOME"/FlashApp/data/"$name"/{levels,session}/
+    mkdir -p "$HOME"/FlashApp/data/"$name"/levels/{1,2,3,4}/
+    mkdir -p "$HOME"/FlashApp/data/"$name"/session/{1,2,3,4}/
+    echo "Assurez vous d'avoir bien placé votre fichier .csv dans le dossier utilisateur"
+    echo "Veuillez écrire le nom du fichier" 
+    read file
+    echo -ne '#####                     (33%)\r'
+    sleep 1
+    cp "$HOME""/$file" "$HOME"/FlashApp/data/"$name"
+    FILE="$HOME/FlashApp/data/$name/$file"
     count=0
-    first_line=$(head -n 1 $FILE)
+    first_line=$(head -n 1 "$FILE")
+    echo -ne '#############             (66%)\r'
+    sleep 1
     IFS='; ' read -r -a keys <<< "$first_line"
     while IFS=";" read -r col1 col2 col3 col4 col5
     do
@@ -26,17 +79,17 @@ create_cards()
             [[ -n $col3 ]] && echo "# ${keys[2]} : $col3"
             [[ -n $col4 ]] && echo "# ${keys[3]} : $col4"
             [[ -n $col5 ]] && echo "# ${keys[4]} : $col5"
-        } > "./data/levels/1/pair$count.md"
+        } > "$HOME/FlashApp/data/$name/levels/1/pair$count.md"
     done < "$FILE"
+    echo -ne '#######################   (100%)\r'
+    echo -ne '\n'
     echo "Cartes crées ! Vous pouvez commencer la session."
-
 }
 
 test()
 {
-    mkdir -p ~/FlashApp/data/{levels,session}/
-    mkdir -p ~/FlashApp/data/levels/{1,2,3,4}/
-    mkdir -p ~/FlashApp/data/session/{1,2,3,4}/
+    echo
+    
 }
 
 cleaning()
@@ -171,11 +224,11 @@ main()
     done
 }
 
-if [[ -e ~/FlashApp ]]
+if [[ -e ~/FlashApp/data ]]
 then 
-    echo "exists"
+    main
 else 
-    echo "nope"
+    installer
 fi
 
 
