@@ -94,15 +94,24 @@ test()
 
 cleaning()
 {
-    for c in $(ls ./data/session/*/*.md)
+    ls $HOME/FlashApp/data/*/session/*/*.md
+    for c in $(ls $HOME/FlashApp/data/*/session/*/*.md)
     do 
-        level=$(echo "$c" | cut -d '/' -f 4)
-        mv $c ./data/levels/$level/
+        set_name=$(echo "$c" | cut -d '/' -f 6)
+        level=$(echo "$c" | cut -d '/' -f 8)
+        mv "$c" "$HOME"/FlashApp/data/"$set_name"/levels/"$level"/
     done
 }
 
 session()
 {
+    echo "Quel set de carte voulez-vous pratiquer ?"
+    for set in $(ls "$HOME"/FlashApp/data/)
+    do  
+        echo $set
+    done
+    read chosen_set
+
     echo "Préparation de la session" 
 
     mv_amount=4
@@ -226,9 +235,9 @@ main()
 
 if [[ -e ~/FlashApp/data ]]
 then 
-    main
+    cleaning
 else 
-    installer
+    cleaning
 fi
 
 
