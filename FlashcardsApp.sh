@@ -13,18 +13,24 @@ installer()
     echo "Bienvenue dans FlashApp™"
     echo "FlashApp n'est pas installé sur votre ordinateur"
     echo "Voulez vous l'installer ? (y/n)"
-    read answer
-    if [[ $answer == "y" ]]
-    then
-        mkdir -p ~/FlashApp/data/
-        echo "FlashApp est désormais installé sur votre ordinateur"
-        echo "Vous pouvez lancer le même programme pour l'utiliser"
-    elif [[ $answer == "n" ]]
-    then
-        echo "Au revoir !"
-    else
-        echo "Je n'ai pas compris, veuillez utiliser y/n pour répondre"
-    fi
+    answered="false"
+    while [ $answered != "true" ]
+    do 
+        read answer
+        if [[ $answer == "y" ]]
+        then
+            mkdir -p ~/FlashApp/data/
+            echo "FlashApp est désormais installé sur votre ordinateur"
+            echo "Vous pouvez lancer le même programme pour l'utiliser"
+            answered="true"
+        elif [[ $answer == "n" ]]
+        then
+            echo "Au revoir !"
+            answered="true"
+        else
+            echo "Je n'ai pas compris, veuillez utiliser y/n pour répondre"
+        fi
+    done
 }
 
 check_install()
@@ -235,9 +241,9 @@ main()
 
 if [[ -e ~/FlashApp/data ]]
 then 
-    cleaning
+    main
 else 
-    cleaning
+    installer
 fi
 
 
