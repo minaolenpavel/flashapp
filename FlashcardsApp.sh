@@ -8,9 +8,23 @@
 #ajouter un onglet statistiques
 #ne pas oublier de faire un vide dans la création de la session après la session, créer une boite session ?
 
+
+
 statistics()
 {
-    echo 
+    cat $HOME/FlashApp/data/periodic_stats.txt
+    right=0
+    wrong=0
+    total=0
+
+    while IFS=";" read -r col1 col2 col3
+    do
+        right=$col1
+        wrong=$col2
+        total=$col3
+    done < "$HOME/FlashApp/data/at_stats.csv"
+    install_date=$(cat "$HOME"/FlashApp/data/date.txt)
+    echo "Au total depuis la date d'installation au $install_date, vous avez $right réponses correctes, $wrong réponses incorrectes, pour un total de $total consultations de cartes. Continuez comme ça !" 
 }
 
 installer()
@@ -27,10 +41,13 @@ installer()
             mkdir -p ~/FlashApp/data/
             echo -ne '#####                     (33%)\r'
             sleep 1
-            touch ~/FlashApp/data/stats.txt
+            touch ~/FlashApp/data/periodic_stats.txt
+            touch ~/FlashApp/data/at_stats.csv
+            echo "0;0;0" >> ~/FlashApp/data/at_stats.csv
             echo -ne '#############             (66%)\r'
             sleep 1
             mkdir ~/FlashApp/data/sets
+            date > ~/FlashApp/data/date.txt
             echo -ne '#######################   (100%)\r'
             echo -ne '\n'
             echo "FlashApp est désormais installé sur votre ordinateur"
@@ -75,6 +92,7 @@ create_cards()
     mkdir -p "$HOME"/FlashApp/data/sets/"$name"/levels/{1,2,3,4}/
     mkdir -p "$HOME"/FlashApp/data/sets/"$name"/session/{1,2,3,4}/
     echo "Assurez vous d'avoir bien placé votre fichier .csv dans le dossier utilisateur"
+    echo "Rappel : Selon le programme, la première ligne de votre fichier .csv correspond aux catégories du contenu de votre fichier"
     echo "Veuillez écrire le nom du fichier" 
     read file
     echo -ne '#####                     (33%)\r'
@@ -168,6 +186,7 @@ session()
     for c in $(ls "$HOME"/FlashApp/data/sets/"$chosen_set"/session/*/*.md | shuf)
     do 
         level=$(echo "$c" | cut -d '/' -f 9)
+        echo $level
         mdp "$c"
         echo "Avez vous trouvé la réponse ? (y/n)"
         answered="false"
@@ -193,7 +212,7 @@ session()
                 if [[ $level != 1 ]]
                 then 
                     ((level-- ))
-                    mv "$c" "$HOME"/FlashApp/data/sets/"$chosen_set"/data/levels/"$level"/
+                    mv "$c" "$HOME"/FlashApp/data/sets/"$chosen_set"/levels/"$level"/
                     echo "carte $c au niveau $level"
                 else 
                     mv "$c" "$HOME"/FlashApp/data/sets/"$chosen_set"/levels/"$level"
@@ -204,9 +223,7 @@ session()
             fi
         done
     done
-    echo "$wrong"
-    echo "$total"
-    echo "$right"
+    write_statistics $right $wrong $total
 }
 
 main()
@@ -216,7 +233,7 @@ main()
     then 
         echo "Vous n'avez pas fini votre session la dernière fois !"
         echo "Vous voulez que le programme ait des problèmes ? Non ce n'est pas bien, je vais nettoyer tout ça mais ne le faites plus"
-        echo "En plus ce n'est pas bon pour votre apprentissage"
+        echo "En plus ce n'est pas bon pour votre apprentissage, de plus, les sessions non finies ne comptent pas dans les statistiques"
         echo "Je vais m'assurer que vous ne le fassiez plus"
         phrase="Oh, comme je suis navré(e) cher programme, je ne recommencerai plus jamais ! je te le promets !"
         echo "Recopiez la phrase suivante, et je vous pardonne :"
@@ -254,6 +271,9 @@ main()
         elif [[ "$answer" == "2" ]]
         then 
             create_cards
+        elif [[ "$answer" == "3" ]]
+        then
+            statistics
         elif [[ "$answer" == "4" ]]
         then 
             echo "Au revoir"
@@ -262,6 +282,22 @@ main()
             echo "Je n'ai pas compris votre demande, veuillez insérer une commande correcte."
         fi 
     done
+}
+
+write_statistics()
+{
+    echo "Session du $(date), $1 réponses correctes, $2 réponses incorrectes" >> "$HOME"/FlashApp/data/periodic_stats.txt
+    right=$1
+    wrong=$2
+    total=$3
+    
+    while IFS=";" read -r col1 col2 col3
+    do  
+        right=$(($right + $col1))
+        wrong=$(($wrong + $col2))
+        total=$(($total + $col3))
+    done < "$HOME/FlashApp/data/at_stats.csv"
+    echo "$right;$wrong;$total" > "$HOME/FlashApp/data/at_stats.csv"
 }
 
 if [[ -e ~/FlashApp/data ]]
