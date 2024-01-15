@@ -1,15 +1,5 @@
 #!/bin/bash
 
-#expr interprete les chaines de caractères comme des int
-#cut -f 2,3 prend en compte les colonnes 2 et 3 | cut -d; indique le délimiteur
-#mkdir xdg-user-dir DOCUMENTS/dirname to create a directory in the user's documents folder
-#pour faire l'installer, il pourrait être judicieux de detecter si les fichiers sont bien présents au démarrage du programme
-#si il ne sont pas présent, le programme commence avec main, autrement il suggère l'installation du programme. 
-#ajouter un onglet statistiques
-#ne pas oublier de faire un vide dans la création de la session après la session, créer une boite session ?
-
-
-
 statistics()
 {
     cat $HOME/FlashApp/data/periodic_stats.txt
@@ -87,46 +77,51 @@ check_install()
 create_cards()
 {
     echo "Quel nom voulez-vous donner à votre set de cartes ?"
+    echo "Si vous donner à votre nouveau set le même nom qu'un set existant, le nouveau set écrasera l'ancien"
     read name
     mkdir -p "$HOME"/FlashApp/data/sets/"$name"/{levels,session}/
     mkdir -p "$HOME"/FlashApp/data/sets/"$name"/levels/{1,2,3,4}/
     mkdir -p "$HOME"/FlashApp/data/sets/"$name"/session/{1,2,3,4}/
     echo "Assurez vous d'avoir bien placé votre fichier .csv dans le dossier utilisateur"
     echo "Rappel : Selon le programme, la première ligne de votre fichier .csv correspond aux catégories du contenu de votre fichier"
-    echo "Veuillez écrire le nom du fichier" 
-    read file
-    echo -ne '#####                     (33%)\r'
-    sleep 1
-    cp "$HOME""/$file" "$HOME"/FlashApp/data/sets/"$name"
-    FILE="$HOME/FlashApp/data/sets/$name/$file" 
-    count=0
-    first_line=$(head -n 1 "$FILE")
-    echo -ne '#############             (66%)\r'
-    sleep 1
-    IFS='; ' read -r -a keys <<< "$first_line"
-    while IFS=";" read -r col1 col2 col3 col4 col5
-    do
-        ((count++))
-        {
-            echo "# ${keys[0]} : $col1"
-            echo
-            echo "---"
-            [[ -n $col2 ]] && echo "# ${keys[1]} : $col2"
-            echo
-            [[ -n $col3 ]] && echo "# ${keys[2]} : $col3"
-            [[ -n $col4 ]] && echo "# ${keys[3]} : $col4"
-            [[ -n $col5 ]] && echo "# ${keys[4]} : $col5"
-        } > "$HOME/FlashApp/data/sets/$name/levels/1/pair$count.md"
-    done < <(tail -n +2 "$FILE")
-    echo -ne '#######################   (100%)\r'
-    echo -ne '\n'
-    echo "Cartes crées ! Vous pouvez commencer la session."
-}
-
-test()
-{
-    echo
-    
+    echo "Veuillez écrire le nom du fichier"
+    answered="false"
+    while [ $answered == "false" ]
+    do 
+        read file
+        if [[ -e ~/$file ]]
+        then
+            echo -ne '#####                     (33%)\r'
+            sleep 1
+            cp "$HOME""/$file" "$HOME"/FlashApp/data/sets/"$name"
+            FILE="$HOME/FlashApp/data/sets/$name/$file" 
+            count=0
+            first_line=$(head -n 1 "$FILE")
+            echo -ne '#############             (66%)\r'
+            sleep 1
+            IFS='; ' read -r -a keys <<< "$first_line"
+            while IFS=";" read -r col1 col2 col3 col4 col5
+            do
+                ((count++))
+                {
+                    echo "# ${keys[0]} : $col1"
+                    echo
+                    echo "---"
+                    [[ -n $col2 ]] && echo "# ${keys[1]} : $col2"
+                    echo
+                    [[ -n $col3 ]] && echo "# ${keys[2]} : $col3"
+                    [[ -n $col4 ]] && echo "# ${keys[3]} : $col4"
+                    [[ -n $col5 ]] && echo "# ${keys[4]} : $col5"
+                } > "$HOME/FlashApp/data/sets/$name/levels/1/pair$count.md"
+            done < <(tail -n +2 "$FILE")
+            echo -ne '#######################   (100%)\r'
+            echo -ne '\n'
+            echo "Cartes crées ! Vous pouvez commencer la session."
+            answered="true"
+        else
+            echo "Fichier introuvable"
+        fi
+    done
 }
 
 cleaning()
@@ -142,16 +137,25 @@ cleaning()
 session()
 {
     echo "Quel set de carte voulez-vous pratiquer ?"
-    for set in $(ls "$HOME"/FlashApp/data/sets)
-    do  
-        echo "$set"
+    answered="false"
+    while [ $answered != "true" ]
+    do 
+        for set in $(ls "$HOME"/FlashApp/data/sets)
+        do  
+            echo "$set"
+        done
+        read chosen_set
+        if [ -e ~/FlashApp/data/sets/"$chosen_set" ]
+        then 
+            answered="true"
+        else
+            echo "Ce set est inexistant, veuillez choisir parmi les sets que vous avez créés"
+        fi
     done
-    read chosen_set
     echo "Préparation de la session" 
     mv_amount=4
     for i in $(seq 1 4)
     do
-        echo $mv_amount
         if [[ $(ls "$HOME"/FlashApp/data/sets/"$chosen_set"/levels/"$i"/ | wc -l) -ge $mv_amount ]]
         then 
             for c in $(ls "$HOME"/FlashApp/data/sets/"$chosen_set"/levels/$i/*.md | shuf -n $mv_amount)
@@ -168,6 +172,7 @@ session()
         ((mv_amount--))
     done
     nb_cards=$(ls "$HOME"/FlashApp/data/sets/"$chosen_set"/session/*/*.md | wc -l)
+    echo $nb_cards
     if [[ $nb_cards -lt 10 ]]
     then 
         gap=$(expr 10 - "$nb_cards")
@@ -186,7 +191,6 @@ session()
     for c in $(ls "$HOME"/FlashApp/data/sets/"$chosen_set"/session/*/*.md | shuf)
     do 
         level=$(echo "$c" | cut -d '/' -f 9)
-        echo $level
         mdp "$c"
         echo "Avez vous trouvé la réponse ? (y/n)"
         answered="false"
@@ -306,12 +310,3 @@ then
 else 
     installer
 fi
-
-
-
-#ls session/*/*.md | shuf
-#fait un échantillon de fichiers aléatoire parmi les boites
-
-#echo "$f" | cut -d '/' -f 3 
-#commande qui va analyser le path du fichier pour avoir 
-
